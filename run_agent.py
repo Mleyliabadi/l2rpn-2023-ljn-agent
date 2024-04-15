@@ -41,7 +41,7 @@ def run_expert_agent(id: int):
     logging.info(f"Starting runner on {NB_EPISODE} episodes on {NB_CORE}")
     PATH_SAVE = f"agents_log_BC/"  # and store the results in the "agents_log" folder
 
-    # initilize agent
+    # initialize agent
     agent = LJNAgent(env, env.action_space)
     agent.id_filter = id
     # use the runner

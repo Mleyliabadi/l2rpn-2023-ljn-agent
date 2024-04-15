@@ -9,6 +9,8 @@ This agent is highly competitive on large complex environment while remaining co
 
 Additionally, we included training scripts we developed during the challenge to train ActorCritic policies on the segmented reduced action spaces with successive imitation and reinforcement learning.
 
+For more insight on our method and associated results, you can check out [our Medium blog post](https://lajavaness.medium.com/how-we-built-the-winning-real-time-autonomous-agent-for-power-grid-management-in-the-l2rpn-41ab3cfaddbd).
+
 **Content**
 1. [Authors](#authors)
 2. [Setup](#setup)
@@ -28,6 +30,23 @@ Additionally, we included training scripts we developed during the challenge to 
 
 The dependecies can be installed simply using `pip install -r requirements.txt`
 This agent has been developed for the particular environment of the L2RPN Ile-de-France challenge 2023, hence the provided action set is based on the environment with id `l2rpn_idf_2023` and actions have been cherry-picked for this particular setup aiming at optimizing the associated scoring system.
+
+## How to collect data using Curriculum Agent
+
+To build custom reduced action space for the particular environment of the challenge, we are leveraging the great work done at the Fraunhofer Institute with their implementation of the [Curiculum Agent](https://github.com/FraunhoferIEE/curriculumagent/tree/master), directly inspired by [BinBinChen's solution](https://github.com/AsprinChina/L2RPN_NIPS_2020_a_PPO_Solution/tree/master) from 2020's challenge.
+
+Teachers scripts from the curriculum agent repository have been running on for nearly 3 days on a 128 CPUs instance to get a representative distribution of most used actions and then we kept actions spaces separated for different cases :
+
+- Teacher 1 and 2 collect actions for general unsafe states either following a line disconnection (1) or in case of an overflow (2).
+- Teacher N-1 collects actions to help keep the grid safe in case of line disconnection.
+
+We also built 2 additional action spaces for safe and intermediate state by varying rho threshold from teacher n-1. These action space are provided with this repository but actually not used in the final implementation for the challenge.
+
+Finally, we get 4 action spaces :
+1. action_space_12_unsafe corresponding to teacher 1 and teacher 2
+2. action_space_n1_unsafe corresponding to teacher n-1 in case unsafe : `rho_threshold_0 = 0.99, rho_threshold_1 = 1.99`
+3. action_space_n1_interm corresponding to teacher n-1 with intermediate rho thresholds : `rho_threshold_0 = 0.9, rho_threshold_1 = 0.99`
+4. action_space_n1_safe corresponding to teacher n-1 with a lower rho thresholds for safe state : `rho_threshold_0 = 0.6, rho_threshold_1 = 0.9`
 
 ## How to run the agent
 
