@@ -35,7 +35,7 @@ class TopoNNTopKModule(GreedyModule):
         return torch.topk(logits, k=top_k)[1].cpu().numpy()[0]
 
     def load_policy(self, model_path: str):
-        self.model = PPO.load(model_path, device=self.device)
+        self.model = PPO.load(model_path, device=self.device, custom_objects = {'observation_space' : self.gym_env.observation_space, 'action_space' : self.gym_env.action_space})
 
     def _get_tested_action(self, observation):
         gym_obs = self.gym_env.observation_space.to_gym(observation)

@@ -5,3 +5,4 @@ lightsim2grid
 numpy
 torch
 curriculum_agent
+stable-baselines3

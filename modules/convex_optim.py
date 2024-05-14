@@ -25,7 +25,7 @@ from grid2op.Action import BaseAction
 from grid2op.Agent import BaseAgent
 from grid2op.Backend import PandaPowerBackend
 from grid2op.l2rpn_utils.idf_2023 import ObservationIDF2023
-from lightsim2grid import LightSimBackend
+from lightsim2grid.lightSimBackend import LightSimBackend
 from lightsim2grid.gridmodel import init
 
 from .base_module import BaseModule
