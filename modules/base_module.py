@@ -78,13 +78,3 @@ class GreedyModule(GreedyAgent, BaseModule):
                 reward_idx = int(np.argmax(self.resulting_rewards))
                 best_action = self.tested_action[reward_idx]
                 return best_action
-
-
-class CompositeModule(BaseModule):
-    """Composite module to combine 2 or more Base Module with higher level rules."""
-
-    def __init__(self, action_space: ActionSpace, **submodules):
-        BaseModule.__init__(self, action_space=action_space)
-        for module in ("n1_unsafe", "12_unsafe", "recovery", "reconnect"):
-            if module in submodules:
-                setattr(self, module, submodules[module])
