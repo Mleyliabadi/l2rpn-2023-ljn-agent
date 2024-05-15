@@ -23,8 +23,9 @@ For more insight on our method and associated results, you can check out [our Me
 
 ## Authors
 
-- Van Tuan DANG, Phd, Data-Scientist at La Javaness - [van.tuan\@lajavaness.com](mailto:van.tuan@lajavaness.com?subject=Test) [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/van-tuan-dang-7b0b4444/)
 - Jules SINTES, Data-Scientist at La Javaness - [jules\@lajavaness.com](mailto:jules@lajavaness.com?subject=Test) [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/jules-sintes/)
+- Van Tuan DANG, Phd, Data-Scientist at La Javaness - [van.tuan\@lajavaness.com](mailto:van.tuan@lajavaness.com?subject=Test) [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=flat&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/van-tuan-dang-7b0b4444/)
+
 
 ## Setup
 
