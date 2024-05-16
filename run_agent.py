@@ -16,8 +16,7 @@ from grid2op.Runner import Runner
 from lightsim2grid.lightSimBackend import LightSimBackend
 from tqdm import tqdm
 
-from .LJNAgent import LJNAgent
-from .train.utils import TRAIN_ENV_NAME
+from .LJNagent import LJNAgent
 
 
 def run_expert_agent(id: int):
@@ -29,7 +28,7 @@ def run_expert_agent(id: int):
         index for multi-processing purpose
     """
     env = grid2op.make(
-        TRAIN_ENV_NAME, backend=LightSimBackend(), chronics_class=MultifolderWithCache
+        "l2rpn_idf_2023", backend=LightSimBackend(), chronics_class=MultifolderWithCache
     )
     env.chronics_handler.real_data.set_filter(
         lambda x: re.match(f".*_{id}$", x) is not None

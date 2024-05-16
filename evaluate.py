@@ -11,10 +11,9 @@ import warnings
 
 from grid2op.MakeEnv import make
 from grid2op.Runner import Runner
+from l2rpn_baselines.LJNAgent import LJNAgent
 from l2rpn_baselines.utils.save_log_gif import save_log_gif
 from lightsim2grid import LightSimBackend
-
-from l2rpn_baselines.LJNAgent import LJNAgent
 
 
 def evaluate(
@@ -76,7 +75,6 @@ def evaluate(
     agent = LJNAgent(
         env,
         env.action_space,
-        verbose=verbose,
     )
 
     # Build the runner

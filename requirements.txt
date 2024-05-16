@@ -3,6 +3,6 @@ grid2op
 l2rpn_baselines
 lightsim2grid
 numpy
-datasets
-imitation
 torch
+curriculum_agent
+stable-baselines3
