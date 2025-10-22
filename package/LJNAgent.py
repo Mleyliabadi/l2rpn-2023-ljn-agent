@@ -99,6 +99,7 @@ class LJNAgent(BaseAgent):
                 and (len(_info["exception"]) == 0)
             ):
                 change = _obs.rho.max() - observation.rho.max()
+                logger.warning("calling reconnection module")
                 act += reco_act
 
         if observation.rho.max() > self.rho_danger:
@@ -108,6 +109,7 @@ class LJNAgent(BaseAgent):
                 observation, act, reward, rho_threshold=self.rho_danger
             )
             if recovery_act is not None:
+                logger.warning("calling topology_recovery")
                 act += recovery_act
 
             else:
@@ -117,7 +119,7 @@ class LJNAgent(BaseAgent):
                     topo_act = self.topo_12_unsafe.get_act(observation, act, reward)
                 # Case 2 : N-1 situation, at least one line is disconnected
                 else:
-
+                    logger.warning("calling n-1 unsafe")        
                     topo_act = self.topo_n1_unsafe.get_act(observation, act, reward)
 
                 if topo_act is not None:
@@ -127,6 +129,7 @@ class LJNAgent(BaseAgent):
             if _obs.rho.max() > self.rho_safe or (len(_info["exception"]) != 0):
                 # The problem has not been solved only by topology reconfiguration
                 # Call the continuous control optimization module
+                logger.warning("calling optim module")
                 act = self.optim.get_act(observation, act, reward)
 
         elif _obs.rho.max() < self.rho_safe:
@@ -135,6 +138,7 @@ class LJNAgent(BaseAgent):
                 observation, act, reward, rho_threshold=0.8
             )
             if recovery_act is not None:
+                logger.warning("calling recovery action (grid is safe)")
                 act += recovery_act
         else:
             # Update the observed storage power.

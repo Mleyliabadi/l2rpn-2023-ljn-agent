@@ -14,7 +14,7 @@ from grid2op.gym_compat import BoxGymObsSpace, GymEnv
 from lightsim2grid.lightSimBackend import LightSimBackend
 from stable_baselines3 import PPO
 
-from ..agent import AgentTopoNN
+from ..LJNAgent import LJNAgentTopoNN
 from ..gym_assets.action_space import GlobalTopoActionSpace
 from ..gym_assets.environment import UnsafeTrainingEnv
 from ..modules.rewards import PPO_Reward
@@ -42,7 +42,7 @@ if __name__ == "__main__":
 
     model_path = "/home/jules/RTE/ai-dispatcher-agent/models/12_unsafe_rho_overflow.zip"
 
-    agent = AgentTopoNN(
+    agent = LJNAgentTopoNN(
         env.action_space, env, gym_env, model_path=model_path, training_mode=True
     )
     model = PPO.load(model_path)

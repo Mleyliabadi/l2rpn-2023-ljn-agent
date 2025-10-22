@@ -8,6 +8,9 @@
 
 __all__ = ["LJNAgent", "evaluate", "LJNAgentTopoNN","make_agent_challenge", "make_agent_topoNN"]
 
-from l2rpn_baselines.LJNAgent.evaluate import evaluate
-from l2rpn_baselines.LJNAgent.LJNAgent import LJNAgent, LJNAgentTopoNN
-from l2rpn_baselines.LJNAgent.make_agent import make_agent_challenge, make_agent_topoNN
+from package.LJNAgent import LJNAgent, LJNAgentTopoNN
+from package.evaluate import evaluate
+from package.make_agent import make_agent_challenge, make_agent_topoNN
+# from l2rpn_baselines.LJNAgent.evaluate import evaluate
+# from l2rpn_baselines.LJNAgent.LJNAgent import LJNAgent, LJNAgentTopoNN
+# from l2rpn_baselines.LJNAgent.make_agent import make_agent_challenge, make_agent_topoNN

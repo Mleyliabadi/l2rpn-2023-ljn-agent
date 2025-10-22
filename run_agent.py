@@ -16,7 +16,7 @@ from grid2op.Runner import Runner
 from lightsim2grid.lightSimBackend import LightSimBackend
 from tqdm import tqdm
 
-from .LJNagent import LJNAgent
+from package.LJNAgent import LJNAgent
 
 
 def run_expert_agent(id: int):
@@ -52,5 +52,5 @@ def run_expert_agent(id: int):
 
 if __name__ == "__main__":
     ## Using multi-processing here instead of multiple processes with the runner because of a bug ##
-    pool = Pool(processes=16)
-    pool.map(run_expert_agent, range(16))
+    pool = Pool(processes=4)
+    pool.map(run_expert_agent, range(4))

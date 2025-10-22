@@ -57,7 +57,7 @@ class GreedyModule(GreedyAgent, BaseModule):
             return None
         if len(self.tested_action) > 0:
             self.resulting_rewards = np.full(
-                shape=len(self.tested_action), fill_value=np.NaN, dtype=dt_float
+                shape=len(self.tested_action), fill_value=np.nan, dtype=dt_float
             )
             for i, action in enumerate(self.tested_action):
                 (

@@ -11,9 +11,9 @@ import os
 import numpy as np
 from grid2op.gym_compat import BoxGymObsSpace, GymEnv
 
-from .gym_assets.action_space import GlobalTopoActionSpace
-from .LJNagent import LJNAgent, LJNAgentTopoNN
-from .utils import NN_ACT_SPACE_DIR
+from package.gym_assets.action_space import GlobalTopoActionSpace
+from package.LJNAgent import LJNAgent, LJNAgentTopoNN
+from package.utils import NN_ACT_SPACE_DIR
 
 
 def make_agent_challenge(env, this_directory_path):
@@ -37,7 +37,7 @@ def make_agent_topoNN(env, this_directory_path):
         env,
         gym_env,
         topk=20,
-        model_path=os.path.join(this_directory_path, "models", "RL_training_PPO.zip"),
+        model_path=os.path.join(this_directory_path, "..", "models", "RL_training_PPO.zip"),
     )
 
     return agent

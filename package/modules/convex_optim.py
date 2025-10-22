@@ -26,7 +26,7 @@ from grid2op.Agent import BaseAgent
 from grid2op.Backend import PandaPowerBackend
 from grid2op.l2rpn_utils.idf_2023 import ObservationIDF2023
 from lightsim2grid.lightSimBackend import LightSimBackend
-from lightsim2grid.gridmodel import init
+from lightsim2grid.gridmodel import init_from_pandapower as init
 
 from .base_module import BaseModule
 
@@ -91,7 +91,7 @@ class OptimModule(BaseModule):
             for list_ids in env._game_rules.legal_action.lines_id_by_area.values()
         ]
         self.max_iter = config["max_iter"]
-        self.flow_computed = np.full(env.n_line, np.NaN, dtype=float)
+        self.flow_computed = np.full(env.n_line, np.nan, dtype=float)
         self.time_step = config["sim_range_time_step"]
         self.area = self.config["areas"]
 
@@ -549,10 +549,10 @@ class OptimModule(BaseModule):
         KCL_eq = []
         for bus_id in range(self.nb_max_bus):
             tmp = inj_bus[bus_id]
-            if np.any(self.bus_or.value == bus_id):
-                tmp += cp.sum(f_or[self.bus_or.value == bus_id])
-            if np.any(self.bus_ex.value == bus_id):
-                tmp -= cp.sum(f_or[self.bus_ex.value == bus_id])
+            if np.any(self.bus_or.value.astype(int) == bus_id):
+                tmp += cp.sum(f_or[self.bus_or.value.astype(int) == bus_id])
+            if np.any(self.bus_ex.value.astype(int) == bus_id):
+                tmp -= cp.sum(f_or[self.bus_ex.value.astype(int) == bus_id])
             KCL_eq.append(tmp)
         return KCL_eq
 
@@ -564,12 +564,12 @@ class OptimModule(BaseModule):
         - A boolean array where `True` indicates the bus has a voltage angle of zero.
         """
         theta_is_zero = np.full(self.nb_max_bus, True, bool)
-        theta_is_zero[self.bus_or.value] = False
-        theta_is_zero[self.bus_ex.value] = False
-        theta_is_zero[self.bus_load.value] = False
-        theta_is_zero[self.bus_gen.value] = False
+        theta_is_zero[self.bus_or.value.astype(int)] = False
+        theta_is_zero[self.bus_ex.value.astype(int)] = False
+        theta_is_zero[self.bus_load.value.astype(int)] = False
+        theta_is_zero[self.bus_gen.value.astype(int)] = False
         if self.bus_storage is not None:
-            theta_is_zero[self.bus_storage.value] = False
+            theta_is_zero[self.bus_storage.value.astype(int)] = False
         theta_is_zero[0] = True  # slack bus
         return theta_is_zero
 
@@ -650,7 +650,7 @@ class OptimModule(BaseModule):
         # Calculate the power flow on each line based on the difference of angles between origin and extremity.
         f_or = cp.multiply(
             1.0 / self._powerlines_x,
-            (theta[self.bus_or.value] - theta[self.bus_ex.value]),
+            (theta[self.bus_or.value.astype(int)] - theta[self.bus_ex.value.astype(int)]),
         )
 
         # Calculate the net power injection at each bus.
@@ -680,7 +680,7 @@ class OptimModule(BaseModule):
                 f"Problem diverged with dc approximation for all solver ({type(self).SOLVER_TYPES}). "
                 "Is your grid connected (one single connex component) ?"
             )
-            self.flow_computed[:] = np.NaN
+            self.flow_computed[:] = np.nan
         return has_converged
 
     def reset(self, obs: ObservationIDF2023):
@@ -709,7 +709,7 @@ class OptimModule(BaseModule):
         # Create the CVXPY expressions
         f_or = cp.multiply(
             1.0 / self._powerlines_x,
-            (theta[self.bus_or.value] - theta[self.bus_ex.value]),
+            (theta[self.bus_or.value.astype(int)] - theta[self.bus_ex.value.astype(int)]),
         )
         f_or_corr = f_or - self._alpha_por_error * self._prev_por_error
         inj_bus = (self.load_per_bus + storage) - (
@@ -801,7 +801,7 @@ class OptimModule(BaseModule):
             logger.error(
                 "compute_optimum_unsafe: Problem diverged. No continuous action will be applied."
             )
-            self.flow_computed[:] = np.NaN
+            self.flow_computed[:] = np.nan
             tmp_ = np.zeros(shape=self.nb_max_bus)
             res = (1.0 * tmp_, 1.0 * tmp_, 1.0 * tmp_)
 
@@ -821,7 +821,7 @@ class OptimModule(BaseModule):
         # Create the CVXPY expressions
         f_or = cp.multiply(
             1.0 / self._powerlines_x,
-            (theta[self.bus_or.value] - theta[self.bus_ex.value]),
+            (theta[self.bus_or.value.astype(int)] - theta[self.bus_ex.value.astype(int)]),
         )
         f_or_corr = f_or - self._alpha_por_error * self._prev_por_error
         inj_bus = (self.load_per_bus + storage) - (
@@ -877,7 +877,7 @@ class OptimModule(BaseModule):
             logger.error(
                 "compute_optimum_safe: Problem diverged. No continuous action will be applied."
             )
-            self.flow_computed[:] = np.NaN
+            self.flow_computed[:] = np.nan
             tmp_ = np.zeros(shape=self.nb_max_bus)
             res = (1.0 * tmp_, 1.0 * tmp_, 1.0 * tmp_)
 
@@ -930,7 +930,7 @@ class OptimModule(BaseModule):
         # Update the action with storage decisions if there are any non-zero storage actions.
         if base_action.n_storage and np.any(np.abs(storage) > 0.0):
             storage_ = np.zeros(shape=base_action.n_storage)
-            storage_[:] = storage[self.bus_storage.value]
+            storage_[:] = storage[self.bus_storage.value.astype(int)]
             base_action.storage_p = storage_
 
         # Update the action with curtailment decisions, be carefull here,
@@ -938,7 +938,7 @@ class OptimModule(BaseModule):
         if np.any(np.abs(curtailment) > 0.0):
             curtailment_mw = np.zeros(shape=base_action.n_gen) - 1.0
             gen_curt = obs.gen_renewable & (obs.gen_p > 0.1)
-            idx_gen = self.bus_gen.value[gen_curt]
+            idx_gen = self.bus_gen.value.astype(int)[gen_curt]
             tmp_ = curtailment[idx_gen]
             modif_gen_optim = tmp_ != 0.0
             aux_ = curtailment_mw[gen_curt]
@@ -970,7 +970,7 @@ class OptimModule(BaseModule):
         if np.any(np.abs(redispatching) > 0.0):
             redisp_ = np.zeros(obs.n_gen)
             gen_redi = obs.gen_redispatchable
-            idx_gen = self.bus_gen.value[gen_redi]
+            idx_gen = self.bus_gen.value.astype(int)[gen_redi]
             tmp_ = redispatching[idx_gen]
             redisp_avail = np.zeros(self.nb_max_bus)
             for bus_id in range(self.nb_max_bus):
@@ -1033,7 +1033,7 @@ class OptimModule(BaseModule):
 
         # If it's the beginning of the episode, reset some internal state.
         if observation.current_step == 0:
-            self.flow_computed[:] = np.NaN
+            self.flow_computed[:] = np.nan
             self._prev_por_error.value[:] = 0.0
         prev_ok = np.isfinite(self.flow_computed)
 
@@ -1044,7 +1044,7 @@ class OptimModule(BaseModule):
         self._prev_por_error.value[~prev_ok] = 0.0
 
         # Reset the computed flows.
-        self.flow_computed[:] = np.NaN
+        self.flow_computed[:] = np.nan
 
         # Update the observed storage power.
         self._update_storage_power_obs(observation)
@@ -1086,7 +1086,7 @@ class OptimModule(BaseModule):
 
         # If it's the beginning of the episode, reset some internal state.
         if observation.current_step == 0:
-            self.flow_computed[:] = np.NaN
+            self.flow_computed[:] = np.nan
             self._prev_por_error.value[:] = 0.0
         prev_ok = np.isfinite(self.flow_computed)
 
@@ -1097,7 +1097,7 @@ class OptimModule(BaseModule):
         self._prev_por_error.value[~prev_ok] = 0.0
 
         # Reset the computed flows.
-        self.flow_computed[:] = np.NaN
+        self.flow_computed[:] = np.nan
 
         # Update the observed storage power.
         self._update_storage_power_obs(observation)
