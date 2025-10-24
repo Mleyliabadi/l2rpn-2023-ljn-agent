@@ -86,10 +86,11 @@ class OptimModule(BaseModule):
         self.config = config
         self._get_grid_info(env)
         self._init_params(env)
-        self.lines_in_area = [
-            list_ids
-            for list_ids in env._game_rules.legal_action.lines_id_by_area.values()
-        ]
+        if config.get("areas"):
+            self.lines_in_area = [
+                list_ids
+                for list_ids in env._game_rules.legal_action.lines_id_by_area.values()
+            ]
         self.max_iter = config["max_iter"]
         self.flow_computed = np.full(env.n_line, np.nan, dtype=float)
         self.time_step = config["sim_range_time_step"]
@@ -208,9 +209,12 @@ class OptimModule(BaseModule):
         self.bus_gen = cp.Parameter(
             shape=self.n_gen, value=1 * self.gen_to_subid, integer=True
         )
-        self.bus_storage = cp.Parameter(
-            shape=self.n_storage, value=1 * self.storage_to_subid, integer=True
-        )
+        if self.n_storage > 0:
+            self.bus_storage = cp.Parameter(
+                shape=self.n_storage, value=1 * self.storage_to_subid, integer=True
+            )
+        else:
+            self.bus_storage = None
         this_zeros_ = np.zeros(self.nb_max_bus)
         self.load_per_bus = cp.Parameter(
             shape=self.nb_max_bus, value=1.0 * this_zeros_, nonneg=True
