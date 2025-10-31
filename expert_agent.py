@@ -6,16 +6,17 @@ from grid2op.Agent import BaseAgent
 from grid2op.Action import BaseAction, ActionSpace
 from grid2op.Observation import BaseObservation
 from grid2op.Runner import Runner
-from grid2op.gym_compat import GymEnv, BoxGymObsSpace, DiscreteActSpaceGymnasium
+
 from lightsim2grid.lightSimBackend import LightSimBackend
 
-from l2rpn_baselines.PPO_SB3.utils import remove_non_usable_attr
 from l2rpn_baselines.PPO_SB3.utils import SB3Agent
 
 from package.modules.topology_heuristic import RecoPowerlineModule, RecoverInitTopoModule
 from package.modules.convex_optim import OptimModule
 from package.modules.rewards import MaxRhoReward
 from package.modules.topology_nn_policy import TopoNNTopKModule
+
+from expert_utils import make_gymenv, create_env_op
 
 logging.basicConfig(level=logging.INFO, filename="agents.log", filemode="w")
 logger = logging.getLogger(__name__)
@@ -41,21 +42,6 @@ L2RPN_CASE14_DEFAULT_OPTIM_CONFIG = {
     "areas": False,
     "sim_range_time_step": 1,
 }
-
-def make_gymenv(env, 
-                obs_attr_to_keep=["rho"], 
-                act_to_keep=("set_bus",)):
-    act_attr_to_keep = remove_non_usable_attr(env, act_to_keep)
-    print("****************", act_attr_to_keep)
-    env_gym = GymEnv(env)
-    env_gym.observation_space.close()
-    env_gym.observation_space = BoxGymObsSpace(env.observation_space,
-                                               attr_to_keep=obs_attr_to_keep)
-    env_gym.action_space.close()
-    env_gym.action_space = DiscreteActSpaceGymnasium(env.action_space,
-                                                     attr_to_keep=act_attr_to_keep)
-    
-    return env_gym
 
 class ExpertAgent(BaseAgent):
     def __init__(
@@ -106,13 +92,15 @@ class ExpertAgent(BaseAgent):
         # Try to perform reconnection if necessary
         reconnect_act = self.reconnect.get_act(observation, act, reward)
         _obs, _rew, _done, _info = observation.simulate(reconnect_act, time_step=1)
-         
+        # logger.info(f"Info: {_info}")
+        # logger.info(f"Exception: {}")
+        
         if reconnect_act is not None:  
             if (reconnect_act is not None
                 and not _done
                 and reconnect_act != self.action_space({})
                 and 0. < _obs.rho.max() < 2.
-                and (len(_info["exception"] == 0))
+                and (len(_info["exception"]) == 0)
             ):
                 logger.info("calling reconnection module")
                 act += reconnect_act
@@ -157,26 +145,13 @@ class ExpertAgent(BaseAgent):
         if act != self.action_space({}):
             self.action_list.append(act)
         return act
-    
-if __name__ == "__main__":
-    backend = LightSimBackend()
-    env = grid2op.make('l2rpn_case14_sandbox',
-                       backend = backend, 
-                       reward_class = MaxRhoReward)
-    
-    env.seed(122435)
-    obs = env.reset()
-    
-    env_gym = make_gymenv(env)
-    
-    model_path = "model_logs"
-    model_name = "PPO_SB3"
-    final_model_path = os.path.join(model_path, model_name, f"{model_name}.zip")
-    
+
+def run_agent(env, env_gym, model_path, top_k=20):
     agent = ExpertAgent(env.action_space, 
                         env, 
                         env_gym, 
-                        model_path=final_model_path)
+                        model_path=model_path,
+                        top_k=top_k)
     
     verbose = True
     runner_params = env.get_params_for_runner()
@@ -197,4 +172,38 @@ if __name__ == "__main__":
         nb_process=1,
         max_iter=env.chronics_handler.max_episode_duration(),
         pbar=verbose,
+        env_seeds=[0, 1]
     )
+    
+    return agent, results
+
+if __name__ == "__main__":
+    env_name = 'l2rpn_case14_sandbox'
+    reward_class = MaxRhoReward
+    seed = 122435
+    env = grid2op.make(env_name,
+                       backend = LightSimBackend(), 
+                       reward_class = reward_class)
+    
+    env.seed(seed)
+    obs = env.reset()
+    
+    env_gym = make_gymenv(env)
+    
+    env_op, env_gym_op = create_env_op(env_name, reward_class, seed)
+    
+    model_path = "model_logs"
+    model_name = "PPO_SB3"
+    final_model_path = os.path.join(model_path, model_name, f"{model_name}.zip")
+    
+    # Evaluate on normal distribution
+    agent, results = run_agent(env, env_gym, final_model_path, top_k=20)
+    
+    # Evaluate on Data drift
+    agent_op, results_op = run_agent(env_op, env_gym_op, final_model_path, top_k=20)
+        
+    # Evaluate the Fine tuned model on data drift
+    final_model_path = os.path.join(model_path, model_name, f"{model_name}_FINETUNED.zip")
+    agent_f, results_f = run_agent(env, env_gym, final_model_path, top_k=20)
+    agent_op_f, results_op_f = run_agent(env_op, env_gym_op, final_model_path, top_k=20)
+    
