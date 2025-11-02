@@ -1,5 +1,6 @@
 import os
 import re
+import typing
 import grid2op
 from grid2op.gym_compat import GymEnv
 from grid2op.Environment import Environment
@@ -21,11 +22,17 @@ from expert_utils import create_env_op, make_gymenv
 
 def train_model(env: Environment,
                 env_gym: GymEnv,
+                env_gym_eval: typing.Optional[GymEnv]=None,
                 name:str = "PPO_SB3", 
-                save_path: str = "model_logs"):
+                total_time_steps: int=1000,
+                save_path: str="model_logs",
+                save_freq: int=2000,
+                eval_freq: int=1000,
+                ):
     net_arch=[200, 200, 200]
     policy_kwargs = {}
     policy_kwargs["net_arch"] = net_arch
+    my_path = os.path.join(save_path, name)
     # save_every_xxx_steps=2000
     # eval_every_xxx_steps=1000
     # kwargs = {}
@@ -46,8 +53,26 @@ def train_model(env: Environment,
                      env_gym.observation_space,
                      nn_kwargs=nn_kwargs)
     
+    callbacks = []
+    callbacks.append(CheckpointCallback(save_freq=save_freq,
+                                        save_path=my_path,
+                                        name_prefix=name))
+    
+    if env_gym_eval is not None:
+        callbacks.append(EvalCallback(eval_env=env_gym_eval,
+                                      best_model_save_path=my_path,
+                                      log_path=my_path,
+                                      eval_freq=eval_freq,
+                                      deterministic=True,
+                                      render=False,
+                                      verbose=True,
+                                      n_eval_episodes=8
+                                      ))
+    
     # train it
-    agent.nn_model.learn(total_timesteps=1000, progress_bar=True)
+    agent.nn_model.learn(total_timesteps=total_time_steps, 
+                         progress_bar=True,
+                         callback=CallbackList(callbacks))
     
     # save the model
     agent.nn_model.save(os.path.join(save_path, name))
@@ -108,7 +133,9 @@ if __name__ == "__main__":
     
     env_op, env_gym_op = create_env_op(env_name=env_name,
                                        reward_class=reward_class,
-                                       seed=seed)
+                                       seed=seed,
+                                       obs_attr_to_keep=obs_attr_to_keep,
+                                       act_to_keep=act_attr_to_keep)
     
     logs_dir = "model_logs"
     if logs_dir is not None:
@@ -119,7 +146,7 @@ if __name__ == "__main__":
     
     # to indicate if the model is in finetuning step or training
     # TODO: using argparse library of python
-    fine_tune = True
+    fine_tune = False
     
     if fine_tune == True:
         # Fine tune on the env with distribution shift (presence of opponent)
@@ -129,7 +156,12 @@ if __name__ == "__main__":
                                 load_path=model_path,
                                 total_time_steps=100000)
     else:
-        agent = train_model(env, env_gym, name="PPO_SB3_test", save_path=model_path)
+        agent = train_model(env, 
+                            env_gym, 
+                            env_gym_eval=env_gym_op, 
+                            name="PPO_SB3_test",
+                            total_time_steps=3000, 
+                            save_path=model_path)
     
     # Load the model
     # agent.load(os.path.join(this_logs_dir, f"{name}.zip"))

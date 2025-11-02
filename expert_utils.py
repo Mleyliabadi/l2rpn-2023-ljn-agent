@@ -39,7 +39,11 @@ def make_gymenv(env: Environment,
     
     return env_gym
 
-def create_env_op(env_name, reward_class, seed):
+def create_env_op(env_name, 
+                  reward_class, 
+                  seed,
+                  obs_attr_to_keep=["rho"], 
+                  act_to_keep=("set_bus",)):
     """Create the opponent environment with line attacks
     
     It is used to evaluate the capability of the agent when encountering data drift
@@ -74,6 +78,8 @@ def create_env_op(env_name, reward_class, seed):
                       )
     env.seed(seed=seed)
     
-    env_gym = make_gymenv(env)
+    env_gym = make_gymenv(env, 
+                          obs_attr_to_keep=obs_attr_to_keep, 
+                          act_to_keep=act_to_keep)
     
     return env, env_gym

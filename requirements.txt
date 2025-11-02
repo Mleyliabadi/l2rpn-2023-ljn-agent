@@ -1,11 +1,13 @@
 cvxpy
-grid2op
-l2rpn_baselines
+grid2op==1.10.5
+pandapower==2.14.11
+l2rpn_baselines==0.8.0
 lightsim2grid
-numpy
-torch
+numpy==1.24.4
+torch==2.4.1
 # curriculum_agent
 stable-baselines3
 imageio
-numba
+numba==0.58.1
 lxml
+tensorboard
