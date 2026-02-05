@@ -11,9 +11,9 @@ import os
 import numpy as np
 from grid2op.gym_compat import BoxGymObsSpace, GymEnv
 
-from package.gym_assets.action_space import GlobalTopoActionSpace
-from package.LJNAgent import LJNAgent, LJNAgentTopoNN
-from package.utils import NN_ACT_SPACE_DIR
+from LJNAgent.gym_assets.action_space import GlobalTopoActionSpace
+from LJNAgent.LJNAgent import LJNAgent, LJNAgentTopoNN
+from LJNAgent.utils import NN_ACT_SPACE_DIR
 
 
 def make_agent_challenge(env, this_directory_path):

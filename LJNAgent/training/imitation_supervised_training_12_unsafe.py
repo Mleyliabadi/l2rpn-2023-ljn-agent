@@ -218,7 +218,7 @@ def train_model(
 
             train_acc["top_1"].append(
                 acc_topk(action_prediction, labels).cpu().numpy()
-            ),
+            )
             train_acc["top_5"].append(
                 acc_topk(action_prediction, labels, k=5).cpu().numpy()
             )
@@ -242,7 +242,7 @@ def train_model(
             action_prediction = dist.distribution.logits
             target = labels.long()
 
-            test_acc["top_1"].append(acc_topk(action_prediction, labels).cpu().numpy()),
+            test_acc["top_1"].append(acc_topk(action_prediction, labels).cpu().numpy())
             test_acc["top_5"].append(
                 acc_topk(action_prediction, labels, k=5).cpu().numpy()
             )
