@@ -24,12 +24,7 @@ pkgs = {
     }
 }
 
-pkgs["extras"]["codabench"] += pkgs["extras"]["recommended"]
-pkgs["extras"]["test"] += pkgs["extras"]["recommended"]
-pkgs["extras"]["test"] += pkgs["extras"]["docs"]
-pkgs["extras"]["test"] += pkgs["extras"]["codabench"]
-
-with open("README.md", "r", encoding="utf-8") as fh:
+with open("README.MD", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(name='LJN_AGENT',
