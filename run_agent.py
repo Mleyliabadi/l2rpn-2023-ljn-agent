@@ -16,7 +16,7 @@ from grid2op.Runner import Runner
 from lightsim2grid.lightSimBackend import LightSimBackend
 from tqdm import tqdm
 
-from package.LJNAgent import LJNAgent
+from LJNAgent.LJNAgent import LJNAgent
 
 
 def run_expert_agent(id: int):
